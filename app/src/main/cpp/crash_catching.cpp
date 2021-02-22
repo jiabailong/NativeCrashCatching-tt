@@ -22,7 +22,7 @@
 #include "log_util.h"
 #include "util.h"
 
-static const char* kTag = "Jekton CrashCatching";
+static const char* kTag = "@ATI";
 
 static std::map<int, struct sigaction> sOldHandlers;
 

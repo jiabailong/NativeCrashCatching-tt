@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <limits>
+#include <sstream>
 
 #include "../dlopen.h"
 #include "../log_util.h"
@@ -36,8 +37,9 @@ void GetStackTrace(pid_t tid, void* ctx, GetTraceCallback* callback) {
 
   auto context = reinterpret_cast<ucontext_t*>(ctx);
   // uc_mcontext.pc is the next instruction to be executed
-  auto pc = static_cast<uint64_t>(context->uc_mcontext.pc) ;
+  auto pc = static_cast<uint64_t>(context->uc_mcontext.pc-4) ;
   size_t j = 0;
+  std::ostringstream oss;
   for (size_t i = 0, size = backtrace->NumFrames(); i < size; ++i) {
     auto frame = backtrace->GetFrame(i);
 
@@ -45,10 +47,11 @@ void GetStackTrace(pid_t tid, void* ctx, GetTraceCallback* callback) {
     const_cast<backtrace_frame_data_t*>(frame)->num = j;
     auto frame_str = backtrace->FormatFrameData(i);
     ++j;
-
-    callback->OnFrame(i, frame_str);
+    oss<<i<<frame_str<<"\n";
 
   }
+  callback->OnFrame(1, oss.str());
+
   LOGE(kTag, "GetStackTrace, over");
 }
 

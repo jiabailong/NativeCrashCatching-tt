@@ -26,5 +26,8 @@ public abstract class CrashCatching {
 
 
     private native static void initNative();
+//    private  static void initNative(String log){
+//        Log.e("jiaji",log);
+//    };
     private native static void dieNative();
 }
