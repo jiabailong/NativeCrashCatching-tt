@@ -5,9 +5,11 @@
 #ifndef CRASH_CATCHING_H_
 #define CRASH_CATCHING_H_
 
+#include <jni.h>
+
 extern "C" {
 
-void InitCrashCaching();
+void InitCrashCaching(JNIEnv *env);
 
 };
 

@@ -5,12 +5,14 @@
 
 #include "crash_catching.h"
 #include "dlopen.h"
+#include <fstream>
+#include "log_util.h"
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_example_nativecrashcatching_CrashCatching_initNative(
     JNIEnv* env, jclass clazz) {
   ndk_init(env);
-  InitCrashCaching();
+  InitCrashCaching(env);
 }
 
 void foo() {

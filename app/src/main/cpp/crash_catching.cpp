@@ -16,7 +16,7 @@
 #include <string>
 #include <sstream>
 #include <thread>
-
+#include <fstream>
 #include "backtrace/backtrace.h"
 #include "dlopen.h"
 #include "log_util.h"
@@ -37,11 +37,12 @@ static void DumpStacks(void* context);
 static pid_t sTidToDump;    // guarded by sMutex
 static void* sContext;
 static void StackDumpingThread();
-
-void InitCrashCaching() {
+static JNIEnv *local_env;
+void InitCrashCaching(JNIEnv *env) {
   LOGD(kTag, "InitCrashCaching");
-  SetUpStack();
-  SetUpSigHandler();
+    local_env=env;
+    SetUpStack();
+    SetUpSigHandler();
 }
 
 static void SetUpStack() {
@@ -88,6 +89,8 @@ static void SignalHandler(int signo, siginfo_t* info, void* context) {
 }
 
 static void CallOldHandler(int signo, siginfo_t* info, void* context) {
+
+
   auto it = sOldHandlers.find(signo);
   if (it != sOldHandlers.end()) {
     if (it->second.sa_flags & SA_SIGINFO) {
@@ -99,6 +102,11 @@ static void CallOldHandler(int signo, siginfo_t* info, void* context) {
 }
 
 static void DumpSignalInfo(siginfo_t* info) {
+    jclass  cls=local_env->FindClass("com/example/nativecrashcatching/CrashCatching");
+    jmethodID method=local_env->GetStaticMethodID(cls,"logNative","(Ljava/lang/String;)V");
+    const jstring  va=local_env->NewStringUTF("frame.c_str()");
+//        LOGD(kTag, "6667-%s", va);
+    local_env->CallStaticVoidMethod(cls, method, va);
   switch (info->si_signo) {
   case SIGILL:
     LOGI(kTag, "signal SIGILL caught");
@@ -223,7 +231,28 @@ static void StackDumpingThread() {
   class Callback : public GetTraceCallback {
    public:
     void OnFrame(size_t frame_num, std::string frame) override {
+//        const char* path="/sdcard/a.txt";
+//        std::ofstream OsWrite;
+//
+//        OsWrite.open(path, std::ios::in|std::ios::out|std::ios::binary);
+//        OsWrite<<frame.c_str();
+//        OsWrite.close();
       LOGD(kTag, "666-%s", frame.c_str());
+        const char* path="/sdcard/a.txt";
+
+        FILE *file=fopen(path,"a+");
+        if(!file){
+            LOGD("@ATI", "打开失败");
+        }else{
+            LOGD("@ATI", "打开成功");
+
+        }
+        int len=strlen(frame.c_str());
+        LOGD("@ATI", "打开成功%d",len);
+
+        fwrite(frame.c_str(),len,sizeof(char),file);
+        fclose(file);
+
     }
 
     void OnFail() override {
